@@ -1,11 +1,29 @@
-FROM python:3.10
+# FROM public.ecr.aws/lambda/python:3.10
 
-WORKDIR /app
+# WORKDIR ${LAMBDA_TASK_ROOT}
+
+# COPY requirements.txt .
+
+# RUN pip install --upgrade pip
+
+# # Use latest available version
+# RUN pip install xgboost==3.0.5 --only-binary=:all:
+
+# RUN pip install -r requirements.txt
+
+# COPY . .
+
+# CMD ["main.handler"]
+
+FROM public.ecr.aws/lambda/python:3.10
+
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["main.handler"]

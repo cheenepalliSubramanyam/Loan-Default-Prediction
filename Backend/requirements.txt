@@ -3,6 +3,6 @@ uvicorn
 pandas
 numpy
 scikit-learn
-xgboost
 joblib
-pydantic
+mangum
+xgboost==3.0.5

@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from schema import LoanRequest
+import xgboost as xgb
 import pandas as pd
-import pickle
 from preprocess import preprocess
 from features import MODEL_FEATURES
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum   # NEW
 
-app= FastAPI()
+app = FastAPI(root_path="/default")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,12 +16,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-with open('model/loan_default_model.pkl','rb') as f:
-    model=pickle.load(f)
+
+model = xgb.XGBClassifier()
+model.load_model('model/loan_default_model.json')
 
 @app.get("/")
 def home():
     return {"message": "Loan Default Prediction API"}
+
 @app.post("/predict")
 def predict(data: LoanRequest):
 
@@ -44,3 +48,6 @@ def predict(data: LoanRequest):
         "default_risk_percent": risk_percent,
         "risk_level": risk_level
     }
+
+# IMPORTANT FOR LAMBDA
+handler = Mangum(app)

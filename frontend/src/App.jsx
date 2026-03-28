@@ -24,6 +24,7 @@ fico_score:""
 
 const [result,setResult] = useState(null);
 const [errors,setErrors] = useState({});
+const [riskLevel, setRiskLevel] = useState(null);
 
 
 const preventInvalidNumberInput = (e)=>{
@@ -70,25 +71,41 @@ return Object.keys(newErrors).length === 0;
 };
 
 
-const handleSubmit = async ()=>{
+const handleSubmit = async () => {
+    if (!validateForm()) return;
 
-if(!validateForm()) return;
+    try {
+        const payload = {
+            ...formData,
+            loan_amnt: parseFloat(formData.loan_amnt),
+            term: parseInt(formData.term),
+            int_rate: parseFloat(formData.int_rate),
+            installment: parseFloat(formData.installment),
+            emp_length: parseInt(formData.emp_length),
+            annual_inc: parseFloat(formData.annual_inc),
+            dti: parseFloat(formData.dti),
+            delinq_2yrs: parseInt(formData.delinq_2yrs),
+            inq_last_6mths: parseInt(formData.inq_last_6mths),
+            open_acc: parseInt(formData.open_acc),
+            revol_util: parseFloat(formData.revol_util),
+            total_acc: parseInt(formData.total_acc),
+            fico_score: parseInt(formData.fico_score),
+        };
 
-try{
+        const res = await axios.post(
+            "https://dhif1tb4ai.execute-api.ap-south-1.amazonaws.com/default/predict",
+            payload,
+            { headers: { "Content-Type": "application/json" } }
+        );
 
-const res = await axios.post(
-"http://127.0.0.1:8000/predict",
-formData
-);
+        setResult(res.data.default_risk_percent);
+        setRiskLevel(res.data.risk_level);
 
-setResult(res.data.default_risk_percent);
-
-}catch(err){
-alert("Prediction failed");
-}
-
+    } catch (err) {
+        console.error("Full error:", err);
+        alert(`Error: ${err.response?.status} - ${JSON.stringify(err.response?.data) || err.message}`);
+    }
 };
-
 
 const inputStyle = (field)=>
 `w-full border rounded-lg p-3 pr-12 ${
@@ -322,22 +339,22 @@ Probability of Loan Default
 
 <div>
 
-{result < 30 && (
-<span className="px-4 py-2 rounded-full bg-green-100 text-green-700 font-semibold">
-Low Risk
-</span>
+{riskLevel === "LOW" && (
+  <span className="px-4 py-2 rounded-full bg-green-100 text-green-700 font-semibold">
+    Low Risk
+  </span>
 )}
 
-{result >= 30 && result < 60 && (
-<span className="px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
-Medium Risk
-</span>
+{riskLevel === "MEDIUM" && (
+  <span className="px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
+    Medium Risk
+  </span>
 )}
 
-{result >= 60 && (
-<span className="px-4 py-2 rounded-full bg-red-100 text-red-700 font-semibold">
-High Risk
-</span>
+{riskLevel === "HIGH" && (
+  <span className="px-4 py-2 rounded-full bg-red-100 text-red-700 font-semibold">
+    High Risk
+  </span>
 )}
 
 </div>
