@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Full CI/CD Pipeline
 
 on:
   push:
@@ -12,57 +12,70 @@ jobs:
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Configure AWS credentials
-      - name: Configure AWS credentials
+      # 2. AWS Credentials
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 3. Get AWS Account ID (export globally)
+      # 3. Get Account ID
       - name: Get AWS Account ID
-        id: aws_account
         run: |
           echo "ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
 
-      # 4. Login to ECR
-      - name: Login to ECR
-        run: |
-          aws ecr get-login-password --region $AWS_REGION | \
-          docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      # ================= FRONTEND ================= #
 
-      # 5. Build Docker image
-      - name: Build Docker image
-        run: |
-          docker build -t loan-default-image ./Backend
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-      # 6. Tag Docker image
-      - name: Tag Docker image
+      - name: Build Frontend
         run: |
-          docker tag loan-default-image:latest $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+          cd frontend
+          npm install
+          npm run build
 
-      # 7. Push to ECR
-      - name: Push to ECR
+      - name: Upload to S3
         run: |
-          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+          aws s3 sync frontend/dist s3://$S3_BUCKET --delete
 
-      # 8. Update Lambda
-      - name: Update Lambda
-        run: |
-          aws lambda update-function-code \
-            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-            --image-uri $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
-
-      # 9. Invalidate CloudFront
       - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
+
+      # ================= BACKEND ================= #
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - name: Build Docker
+        run: |
+          docker build -t loan-default-image ./Backend
+
+      - name: Tag Docker
+        run: |
+          docker tag loan-default-image:latest $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Push to ECR
+        run: |
+          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Update Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --image-uri $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
