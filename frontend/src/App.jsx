@@ -26,13 +26,18 @@ const [formData, setFormData] = useState(initialFormData);
 const [result, setResult] = useState(null);
 const [errors, setErrors] = useState({});
 const [riskLevel, setRiskLevel] = useState(null);
-const [loading, setLoading] = useState(false);  // ← NEW
+const [loading, setLoading] = useState(false);
 
 
 const preventInvalidNumberInput = (e)=>{
   if(["e","E","+","-"].includes(e.key)){
     e.preventDefault();
   }
+};
+
+// ← NEW - Prevent scroll changing number values
+const preventScrollChange = (e)=>{
+  e.target.blur();
 };
 
 
@@ -60,7 +65,6 @@ const validateForm = ()=>{
 };
 
 
-// ← NEW - Clear Form Handler
 const handleClear = () => {
   setFormData(initialFormData);
   setResult(null);
@@ -72,7 +76,7 @@ const handleClear = () => {
 const handleSubmit = async () => {
   if (!validateForm()) return;
 
-  setLoading(true);  // ← Start loading
+  setLoading(true);
   setResult(null);
   setRiskLevel(null);
 
@@ -107,7 +111,7 @@ const handleSubmit = async () => {
     console.error("Full error:", err);
     alert(`Error: ${err.response?.status} - ${JSON.stringify(err.response?.data) || err.message}`);
   } finally {
-    setLoading(false);  // ← Stop loading always
+    setLoading(false);
   }
 };
 
@@ -139,7 +143,7 @@ return(
         <div>
           <label className="text-sm text-gray-600">Loan Amount</label>
           <div className="relative">
-            <input name="loan_amnt" type="number" value={formData.loan_amnt} className={inputStyle("loan_amnt")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="loan_amnt" type="number" value={formData.loan_amnt} className={inputStyle("loan_amnt")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">$</span>
           </div>
           {errors.loan_amnt && <p className="text-red-500 text-sm mt-1">{errors.loan_amnt}</p>}
@@ -148,7 +152,7 @@ return(
         <div>
           <label className="text-sm text-gray-600">Interest Rate</label>
           <div className="relative">
-            <input name="int_rate" type="number" value={formData.int_rate} className={inputStyle("int_rate")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="int_rate" type="number" value={formData.int_rate} className={inputStyle("int_rate")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">%</span>
           </div>
           {errors.int_rate && <p className="text-red-500 text-sm mt-1">{errors.int_rate}</p>}
@@ -165,7 +169,7 @@ return(
         <div>
           <label className="text-sm text-gray-600">Installment</label>
           <div className="relative">
-            <input name="installment" type="number" value={formData.installment} className={inputStyle("installment")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="installment" type="number" value={formData.installment} className={inputStyle("installment")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">/mo</span>
           </div>
           {errors.installment && <p className="text-red-500 text-sm mt-1">{errors.installment}</p>}
@@ -182,7 +186,7 @@ return(
         <div>
           <label className="text-sm text-gray-600">Annual Income</label>
           <div className="relative">
-            <input name="annual_inc" type="number" value={formData.annual_inc} className={inputStyle("annual_inc")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="annual_inc" type="number" value={formData.annual_inc} className={inputStyle("annual_inc")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">$</span>
           </div>
           {errors.annual_inc && <p className="text-red-500 text-sm mt-1">{errors.annual_inc}</p>}
@@ -191,7 +195,7 @@ return(
         <div>
           <label className="text-sm text-gray-600">Employment Length</label>
           <div className="relative">
-            <input name="emp_length" type="number" value={formData.emp_length} className={inputStyle("emp_length")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="emp_length" type="number" value={formData.emp_length} className={inputStyle("emp_length")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">yrs</span>
           </div>
           {errors.emp_length && <p className="text-red-500 text-sm mt-1">{errors.emp_length}</p>}
@@ -227,7 +231,7 @@ return(
         <div>
           <label className="text-sm text-gray-600">Debt-to-Income Ratio</label>
           <div className="relative">
-            <input name="dti" type="number" value={formData.dti} className={inputStyle("dti")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="dti" type="number" value={formData.dti} className={inputStyle("dti")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">%</span>
           </div>
           {errors.dti && <p className="text-red-500 text-sm mt-1">{errors.dti}</p>}
@@ -235,26 +239,26 @@ return(
 
         <div>
           <label className="text-sm text-gray-600">Past Due Accounts (Last 2 Years)</label>
-          <input name="delinq_2yrs" type="number" value={formData.delinq_2yrs} className={inputStyle("delinq_2yrs")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+          <input name="delinq_2yrs" type="number" value={formData.delinq_2yrs} className={inputStyle("delinq_2yrs")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
           {errors.delinq_2yrs && <p className="text-red-500 text-sm mt-1">{errors.delinq_2yrs}</p>}
         </div>
 
         <div>
           <label className="text-sm text-gray-600">Recent Credit Checks (Last 6 Months)</label>
-          <input name="inq_last_6mths" type="number" value={formData.inq_last_6mths} className={inputStyle("inq_last_6mths")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+          <input name="inq_last_6mths" type="number" value={formData.inq_last_6mths} className={inputStyle("inq_last_6mths")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
           {errors.inq_last_6mths && <p className="text-red-500 text-sm mt-1">{errors.inq_last_6mths}</p>}
         </div>
 
         <div>
           <label className="text-sm text-gray-600">Active Credit Accounts</label>
-          <input name="open_acc" type="number" value={formData.open_acc} className={inputStyle("open_acc")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+          <input name="open_acc" type="number" value={formData.open_acc} className={inputStyle("open_acc")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
           {errors.open_acc && <p className="text-red-500 text-sm mt-1">{errors.open_acc}</p>}
         </div>
 
         <div>
           <label className="text-sm text-gray-600">Credit Card Usage (%)</label>
           <div className="relative">
-            <input name="revol_util" type="number" value={formData.revol_util} className={inputStyle("revol_util")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+            <input name="revol_util" type="number" value={formData.revol_util} className={inputStyle("revol_util")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
             <span className="absolute right-3 top-2 text-gray-400">%</span>
           </div>
           {errors.revol_util && <p className="text-red-500 text-sm mt-1">{errors.revol_util}</p>}
@@ -262,13 +266,13 @@ return(
 
         <div>
           <label className="text-sm text-gray-600">Total Credit Accounts</label>
-          <input name="total_acc" type="number" value={formData.total_acc} className={inputStyle("total_acc")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+          <input name="total_acc" type="number" value={formData.total_acc} className={inputStyle("total_acc")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
           {errors.total_acc && <p className="text-red-500 text-sm mt-1">{errors.total_acc}</p>}
         </div>
 
         <div className="col-span-2">
           <label className="text-sm text-gray-600">FICO Score</label>
-          <input name="fico_score" type="number" value={formData.fico_score} className={inputStyle("fico_score")} onChange={handleChange} onKeyDown={preventInvalidNumberInput}/>
+          <input name="fico_score" type="number" value={formData.fico_score} className={inputStyle("fico_score")} onChange={handleChange} onKeyDown={preventInvalidNumberInput} onWheel={preventScrollChange}/>
           {errors.fico_score && <p className="text-red-500 text-sm mt-1">{errors.fico_score}</p>}
         </div>
 
@@ -278,7 +282,6 @@ return(
     {/* Buttons */}
     <div className="flex gap-4">
 
-      {/* Calculate Button */}
       <button
         onClick={handleSubmit}
         disabled={loading}
@@ -287,7 +290,6 @@ return(
         {loading ? "⏳ Please Wait..." : "Calculate Default Risk"}
       </button>
 
-      {/* Clear Button - shows only after result */}
       {result !== null && (
         <button
           onClick={handleClear}
